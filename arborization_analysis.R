@@ -5,14 +5,35 @@ setwd("~/Charite Thesis/CBX3 project/imaging self-branching neurons")
 
 # Import
 
+div7_div4_table <- read.table(
+  "SNT_Measurements_DIV7_DIV4.csv",
+  fileEncoding = 'latin1',
+  sep = ";",
+  header = TRUE
+)
+
+# Plot
+
+df_long <- div7_div4_table %>% pivot_longer(cols = 3:last_col(),
+                                            names_to = "Variable",
+                                            values_to = "Value")
+ggplot(df_long, aes(x = DIV, y = Value, color = DIV)) +
+  geom_boxplot() +
+  geom_jitter() +
+  theme_minimal() +
+  facet_grid(Variable ~ Condition, scales = 'free')
+
+# Import
+
 div7_table <- read.table(
   "SNT_Measurements_DIV7.csv",
   fileEncoding = 'latin1',
   sep = ";",
   header = TRUE
 )
+
 summary(div7_table)
-div7_table_columns <- colnames(div7_table[, 2:12])
+div7_table_columns <- colnames(div7_table[, 2:11])
 
 # Checking for outliers
 
@@ -33,8 +54,8 @@ div7_table <- div7_table[-c(index_outliers), ]
 
 # Testing normality not ok
 
-div7_table_matrix <- as.matrix(div7_table[, 2:12])
-div7_table_matrix <- t(div7_table_matrix[1:56, 1:9])
+div7_table_matrix <- as.matrix(div7_table[, 2:11])
+div7_table_matrix <- t(div7_table_matrix[1:56, 1:8])
 mshapiro.test(div7_table_matrix)
 lapply(div7_table[2:11], shapiro.test)
 
@@ -42,20 +63,21 @@ lapply(div7_table[2:11], shapiro.test)
 
 # Plot
 
-df_long <- div7_table %>% pivot_longer(cols = 2:last_col(),
-                                       names_to = "Variable",
-                                       values_to = "Value")
-ggplot(df_long, aes(x = Condition, y = Value, color = Condition)) +
+df_long_div7 <- div7_table %>% pivot_longer(cols = 2:last_col(),
+                                            names_to = "Variable",
+                                            values_to = "Value")
+ggplot(df_long_div7, aes(x = Condition, y = Value, color = Condition)) +
   geom_boxplot() +
   geom_jitter() +
   theme_minimal() +
-  facet_wrap( ~ Variable, scales = 'free')
+  facet_wrap( ~ Variable, scales = 'free', ncol = 5)
+
 
 # Kruskal-Wallis test
 
 list.res.kruskal <- list()
 i = 0
-for (col in div7_table[, 2:12]) {
+for (col in div7_table[, 2:11]) {
   i = i + 1
   list.res.kruskal[[div7_table_columns[i]]] <- div7_table %>% kruskal_test(col ~ Condition)
   print(div7_table_columns[i])

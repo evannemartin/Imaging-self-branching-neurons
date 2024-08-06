@@ -70,7 +70,7 @@ ggplot(df_long_div7, aes(x = Condition, y = Value, color = Condition)) +
   geom_boxplot() +
   geom_jitter() +
   theme_minimal() +
-  facet_wrap( ~ Variable, scales = 'free', ncol = 5)
+  facet_wrap(~ Variable, scales = 'free', ncol = 5)
 
 
 # Kruskal-Wallis test
@@ -103,3 +103,56 @@ pwc_path_mean
 pwc_nb_primary <- div7_table %>%
   dunn_test(Nb_primary_branches ~ Condition, p.adjust.method = "bonferroni")
 pwc_path_mean
+
+
+
+# Kruskal-Wallis for DIV4
+
+# Import
+
+div4_table <- read.table(
+  "SNT_Measurements_DIV4.csv",
+  fileEncoding = 'latin1',
+  sep = ";",
+  header = TRUE
+)
+
+summary(div4_table)
+div4_table_columns <- colnames(div4_table[, 2:11])
+
+# Checking for outliers
+
+outliers_ci <- identify_outliers(data = div4_table, Complexity_index)
+outliers_ci <- outliers_ci[outliers_ci$is.extreme == TRUE, ]$Complexity_index
+index_outliers <- which(div4_table$Complexity_index %in% outliers_ci)
+div4_table <- div4_table[-c(index_outliers), ]
+
+# No extreme outliers
+outliers_sholl <- identify_outliers(data = div4_table, Sholl_Ramification_index)
+outliers_path_max <- identify_outliers(data = div4_table, Path_length_Max)
+
+
+# Plot
+
+df_long_div4 <- div4_table %>% pivot_longer(cols = 2:last_col(),
+                                            names_to = "Variable",
+                                            values_to = "Value")
+ggplot(df_long_div4, aes(x = Condition, y = Value, color = Condition)) +
+  geom_boxplot() +
+  geom_jitter() +
+  theme_minimal() +
+  facet_wrap( ~ Variable, scales = 'free', ncol = 5)
+
+
+# Kruskal-Wallis test
+
+list.res.kruskal <- list()
+i = 0
+for (col in div4_table[, 2:11]) {
+  i = i + 1
+  list.res.kruskal[[div4_table_columns[i]]] <- div4_table %>% kruskal_test(col ~ Condition)
+  print(div4_table_columns[i])
+  print(list.res.kruskal[[div4_table_columns[i]]])
+}
+
+# No significant measurements
